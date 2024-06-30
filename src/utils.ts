@@ -117,7 +117,9 @@ export const bgStyles = (language: string) => {
         : language === "Perl"
         ? "#0298c3"
         : language === "Scheme"
-        ? "#1e4aec"
+        ? "#1e4aec" 
+        : language === "Hack"
+        ? "#878787"
         : "#ccc",
   };
   return styles;

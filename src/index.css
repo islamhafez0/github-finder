@@ -454,7 +454,7 @@ body {
                 color: #848d97;
               }
             }
-            > p {
+            > p.description {
               color: #848d97;
               font-size: 15px;
               margin: 10px 0;
@@ -494,14 +494,14 @@ body {
         }
       }
       .followers {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        display: flex;
+        flex-wrap: wrap;
         gap: 1rem;
-        padding: 1rem;
         .userCard {
           box-shadow: 0px 0px 2px rgba(204, 204, 204, 0.8);
           padding: 1rem;
-          max-width: 290px;
+          width: calc((100% / 3) - 1rem);
+          max-width: 100%;
           &:hover {
             background-color: #cccccc0f;
           }
@@ -530,8 +530,13 @@ body {
 }
 
 @media screen and (max-width: 560px) {
+  .header {
+    padding: 10px;
+  }
   .followers {
-    place-content: center;
+    .userCard {
+      width: 100% !important;
+    }
   }
   .trending {
     padding: 0 1rem;
@@ -548,6 +553,7 @@ body {
     width: 100% !important;
   }
   .tabs {
+    padding: 2rem 10px 12px !important;
     justify-content: space-between;
     a.active::after {
       bottom: 0 !important;
@@ -575,8 +581,26 @@ body {
       > p {
         font-size: 18px !important;
       }
-      .followers {
-        grid-template-columns: 1fr !important;
+      .repos {
+        .repo {
+          div:first-child {
+            display: flex;
+            align-items: center;
+            a {
+              width: 200px;
+              display: block;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              overflow: hidden;
+            }
+          }
+          p.description {
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
       }
     }
   }
@@ -593,7 +617,9 @@ body {
 
 @media (min-width: 560px) and (max-width: 1024px) {
   .followers {
-    grid-template-columns: repeat(2, 1fr) !important;
+    .userCard {
+      width: calc((100% / 2) - 1rem) !important;
+    }
   }
 }
 .copyright {

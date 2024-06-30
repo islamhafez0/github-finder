@@ -15,7 +15,7 @@ const UserRepo = ({ repo }: { repo: TRepo }) => {
         </a>
         {!repo.private && <span>Public</span>}
       </div>
-      <p>{repo.description}</p>
+      <p className="description">{repo.description}</p>
       <div className="topics">
         {repo.topics.map((topic) => (
           <p key={topic} className="topic">
