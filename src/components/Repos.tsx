@@ -1,33 +1,32 @@
-import { ChangeEvent, useState } from "react";
+import { useEffect } from "react";
 import { useGit } from "../hooks/useGit";
-import { TRepo } from "../interface";
 import UserRepo from "./UserRepo";
 import { v4 as uuidv4 } from "uuid";
+import Loader from "./Loader";
+import { useLocation } from "react-router-dom";
+
 const Repos = () => {
-  const { repos, loadNextPage, loadPrevPage, page, totalPages, getReposError } =
-    useGit();
+  const { repos, status, getUserRepositories, pagination, setPage } = useGit();
+  const { currentPage, totalPages } = pagination.repos;
+  const username = useLocation().pathname.split("/")[2];
+  useEffect(() => {
+    (async () => {
+      await getUserRepositories(username);
+    })();
+    window.scrollTo(0, 0);
+  }, [username, currentPage]);
 
-  const [query, setQuery] = useState<string>("");
-  const [filteredRepos, setFilteredRepos] = useState<TRepo[]>(repos);
-  const { isLoadingRepos } = useGit();
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value.trim();
-    setQuery(inputValue);
-    const updatedRepos = repos.filter((repo: TRepo) => {
-      return repo.name.toLowerCase().includes(inputValue.toLocaleLowerCase());
-    });
-    setFilteredRepos(updatedRepos);
-  };
-
-  if (getReposError) {
-    return <p className="error">{getReposError}</p>;
+  if (status.error.repos) {
+    return <p className="error">{status.error.repos}</p>;
+  }
+  if (status.loading.repos) {
+    return <Loader />;
   }
 
-  if (!isLoadingRepos && repos.length === 0) {
+  if (!status.loading.repos && repos.length === 0) {
     return (
       <p style={{ textAlign: "center", paddingTop: 35, fontWeight: 500 }}>
-        {isLoadingRepos ? "" : "No available repositories!"}
+        No available repositories!
       </p>
     );
   }
@@ -35,40 +34,32 @@ const Repos = () => {
   return (
     <div className="tab">
       <div className="repos">
-        {repos.length !== 0 && (
-          <div className="filtering">
-            <input
-              className="search_repo"
-              type="text"
-              placeholder="Find a repository"
-              onChange={handleChange}
-              value={query}
-            />
-          </div>
-        )}
         <div className="repos_container">
-          {filteredRepos?.map((repo: TRepo) => {
+          {repos?.map((repo) => {
             return (
               <UserRepo key={`${uuidv4()}-${repo?.node_id}`} repo={repo} />
             );
           })}
         </div>
-        {!isLoadingRepos && repos.length !== 0 && (
+        {!status.loading.following && repos.length === 0 && (
+          <p style={{ textAlign: "center", fontWeight: 500, fontSize: 14 }}>
+            This user has no repositories!
+          </p>
+        )}
+        {!status.loading.repos && repos.length !== 0 && (
           <div className="pagination">
             <button
-              disabled={page === 1}
-              className={`${page === 1 && "disabled"}`}
-              onClick={loadPrevPage}
+              disabled={currentPage === 1}
+              className={`${currentPage === 1 && "disabled"}`}
+              onClick={() => setPage("repos", currentPage - 1)}
             >
               Previous
             </button>
-            {page} of {totalPages}
+            {currentPage} of {totalPages}
             <button
-              disabled={page === totalPages || totalPages === 0}
-              className={`${
-                (page === totalPages || totalPages === 0) && "disabled"
-              }`}
-              onClick={loadNextPage}
+              disabled={currentPage === totalPages}
+              className={`${currentPage === totalPages && "disabled"}`}
+              onClick={() => setPage("repos", currentPage + 1)}
             >
               Next
             </button>

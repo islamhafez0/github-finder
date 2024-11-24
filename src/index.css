@@ -18,12 +18,30 @@ li {
 a {
   text-decoration: none;
 }
-#root {
-  min-height: 100vh;
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+.main {
+  width: 100%;
 }
 body {
   background-color: #010409;
   color: #e6edf3;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background-color: #0f0f0f;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #aaaaaa;
+  border-radius: 1px;
 }
 .laoder_wrapper {
   display: flex;
@@ -53,6 +71,7 @@ body {
   font-size: 18px;
   text-align: center;
   padding-top: 35px;
+  padding-inline: 10px;
 }
 .pagination {
   display: flex;
@@ -75,9 +94,9 @@ body {
     &:hover {
       background-color: #30363d87;
     }
-    &.disabled {
+    &:disabled {
       color: #cccccc54;
-      cursor: not-allowed;
+      cursor: default;
       &:hover {
         background-color: transparent;
       }
@@ -91,62 +110,6 @@ body {
   background-color: #2f81f7;
   margin-right: 2px;
 }
-.filtering {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding-bottom: 10px;
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    font-size: 16px;
-    font-weight: 400;
-  }
-  select[id="language"] {
-    font-size: 1.15rem;
-    padding: 10px 15px;
-    background-color: #010409;
-    box-shadow: 0px 0px 2px rgba(204, 204, 204, 0.8);
-    width: 100%;
-    border: 1px solid #caced14a;
-    border-radius: 0.25rem;
-    color: #e6edf3;
-    cursor: pointer;
-    &:focus {
-      border-color: #2f81f7;
-      box-shadow: inset 0 0 0 1px #0000 #2f81f7;
-      outline: none;
-    }
-    option {
-      cursor: pointer;
-    }
-  }
-  &.trendRepos {
-    height: 80px;
-    padding: 0 1rem;
-  }
-  .search_repo {
-    background-color: transparent;
-    border: 1px solid transparent;
-    box-shadow: 0px 0px 2px rgba(204, 204, 204, 0.8);
-    outline: none;
-    width: 300px;
-    padding: 10px 15px;
-    border-radius: 5px;
-    overflow: hidden;
-    transition: 0.1s all;
-    caret-color: #2f81f7;
-    color: #e6edf3;
-    &:focus {
-      border-color: #2f81f7;
-      box-shadow: inset 0 0 0 1px #0000 #2f81f7;
-      outline: none;
-    }
-  }
-}
 .imageIsLoading {
   filter: blur(5px);
   opacity: 0.8;
@@ -157,11 +120,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
+  padding: 0 1rem;
   height: 64px;
   box-shadow: 0px 0px 2px rgba(204, 204, 204, 0.8);
-  max-width: 1200px;
-  margin: 0 auto;
   .logo {
     width: 50px;
     height: 50px;
@@ -174,7 +135,7 @@ body {
       height: 100%;
     }
   }
-  .searchBar {
+  .serach_bar {
     background-color: transparent;
     border: 1px solid transparent;
     box-shadow: 0px 0px 2px rgba(204, 204, 204, 0.8);
@@ -204,21 +165,20 @@ body {
 .trending {
   margin: 0 auto 50px;
   max-width: 1200px;
-  min-height: 100vh;
-  padding: 0 2rem;
+  padding: 0 1rem;
   .trending_welcome {
-    display: flex;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     padding: 35px 0;
     text-align: center;
-    h2 {
-      font-size: 32px;
+    h1 {
+      font-size: 26px;
       font-weight: bold;
     }
     p {
+      font-size: 15px;
       margin-top: 10px;
       color: #848d97;
     }
@@ -232,36 +192,46 @@ body {
       width: 100%;
       padding: 1rem;
       border-top: 1px solid #30363d;
+      transition: all 0.3s;
+      overflow: hidden;
+      &:hover {
+        background-color: #cccccc0f;
+      }
       a {
         color: #2f81f7;
-        font-size: 20px;
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        width: fit-content;
         &:hover {
           text-decoration: underline;
         }
-        svg {
-          margin-right: 10px;
-          color: #848d97;
+        img {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
         }
         span {
           font-weight: bold;
           margin-left: 6px;
+          flex: 1;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
         }
       }
       .description {
         color: #848d97;
-        font-size: 14px;
+        font-size: 12px;
         margin-top: 5px;
-        color: #848d97;
-        font-size: 14px;
-        margin-top: 5px;
-        width: calc(100% - 2rem);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
         text-overflow: ellipsis;
+        line-height: 1.5em;
+        max-height: 3em;
+        max-width: calc(75%);
         overflow: hidden;
-        white-space: nowrap;
       }
       .repo_info {
         display: flex;
@@ -282,12 +252,12 @@ body {
             align-items: center;
             gap: 3px;
             small {
-              font-size: 14px;
+              font-size: 12px;
               margin-right: 7px;
             }
             img {
-              width: 25px;
-              height: 25px;
+              width: 20px;
+              height: 20px;
               border-radius: 50%;
             }
           }
@@ -298,14 +268,13 @@ body {
 }
 
 .userDetails {
+  max-width: 1200px;
   margin: 0 auto;
-  min-height: 100vh;
   .tabs {
     display: flex;
     align-items: center;
     padding: 1rem 2rem 12px;
     gap: 10px;
-    max-width: 1200px;
     margin: 0 auto;
     background-color: #010409;
     flex-wrap: wrap;
@@ -340,10 +309,9 @@ body {
     }
   }
   .tab_container {
+    padding: 1rem;
     .tab {
-      padding: 1rem;
-      max-width: 1200px;
-      margin: 10px auto 0;
+      margin-top: 15px;
       .user {
         &.row {
           display: flex;
@@ -529,7 +497,7 @@ body {
   }
 }
 
-@media screen and (max-width: 560px) {
+@media screen and (max-width: 559px) {
   .header {
     padding: 10px;
   }
@@ -539,14 +507,12 @@ body {
     }
   }
   .trending {
-    padding: 0 1rem;
-  }
-  .filtering {
-    label {
-      width: 100%;
+    padding: 0 10px;
+    .repoBox {
+      padding: 10px;
     }
   }
-  .searchBar {
+  .serach_bar {
     width: 100% !important;
   }
   .search_repo {
@@ -560,8 +526,8 @@ body {
     }
   }
   .tab_container {
+    padding: 1rem 10px !important;
     .tab {
-      padding: 1rem 10px !important;
       .user {
         &.row {
           img {

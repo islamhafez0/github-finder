@@ -1,178 +1,190 @@
-import { ReactNode, createContext, useEffect, useState } from "react";
-import { TGitContext, Repo, TUserData } from "../interface";
-import axios from "axios";
-import { useUsername } from "../hooks/useUsername";
-import { usePagination } from "../hooks/usePagination";
+import { ReactNode, createContext, useState } from "react";
+import { GitContextTypes, Repo, User } from "../types";
+import {
+  fetchUserDetails,
+  fetchUserFollowers,
+  fetchUserRepos,
+  fetchUserFollowing,
+} from "../api";
 
-export const GithubContext = createContext<TGitContext | undefined>(undefined);
+export const GithubContext = createContext<GitContextTypes | undefined>(
+  undefined
+);
 
 export const GitProvider = ({ children }: { children: ReactNode }) => {
-  const [userData, setUserData] = useState<TUserData | null>(null);
+  const [userData, setUserData] = useState<User | null>(null);
   const [repos, setRepos] = useState<Repo[]>([]);
-  const [followers, setFollowers] = useState([]);
-  const [following, setFollowing] = useState([]);
+  const [followers, setFollowers] = useState<User[]>([]);
+  const [following, setFollowing] = useState<User[]>([]);
 
-  const [isLoadingUserData, setIsLoadingUserData] = useState(false);
-  const [isLoadingRepos, setIsLoadingRepos] = useState(false);
-  const [isLoadingFollowers, setIsLoadingFollowers] = useState(false);
-  const [isLoadingFollowing, setIsLoadingFollowing] = useState(false);
+  const [status, setStatus] = useState({
+    loading: { user: true, repos: true, followers: true, following: true },
+    error: { user: "", repos: "", followers: "", following: "" },
+  });
 
-  const [getUserError, setGetUserError] = useState<string>("");
-  const [getReposError, setGetReposError] = useState<string>("");
-  const [getFollowersError, setGetFollowersError] = useState<string>("");
-  const [getFollowingError, setGetFollowingError] = useState<string>("");
-  const {
-    page,
-    totalPages,
-    followersPage,
-    followersTotalPages,
-    followingPage,
-    followingTotalPages,
-    setPage,
-    setFollowingPage,
-    setFollowersPage,
-    setTotalPages,
-    setFollowersTotalPages,
-    setFollowingTotalPages,
-  } = usePagination();
-  const { username } = useUsername();
-  useEffect(() => {
-    setGetReposError("");
-    setGetFollowersError("");
-    setGetFollowingError("");
-    setGetUserError("");
-    setUserData(null);
-    setRepos([]);
-    setFollowers([]);
-    setFollowing([]);
-    if (username) {
-      fetchUserDetails();
-      fetchRepos();
-      fetchFollowers();
-      fetchFollowing();
-    }
-  }, [username, page, followersPage, followingPage]);
-  const token = import.meta.env.VITE_GITHUB_ACCESS_TOKEN;
-  const authHedaers = {
-    auth: {
-      username: "islamhafez0",
-      password: token,
-    },
+  const [pagination, setPagination] = useState({
+    repos: { currentPage: 1, totalPages: 1 },
+    followers: { currentPage: 1, totalPages: 1 },
+    following: { currentPage: 1, totalPages: 1 },
+  });
+
+  const setTotalPages = (
+    endpoint: keyof typeof pagination,
+    totalPages: number
+  ) => {
+    setPagination((prev) => ({
+      ...prev,
+      [endpoint]: { ...prev[endpoint], totalPages },
+    }));
   };
-  const fetchUserDetails = async () => {
+
+  const setPage = (endpoint: keyof typeof pagination, page: number) => {
+    setPagination((prev) => ({
+      ...prev,
+      [endpoint]: { ...prev[endpoint], currentPage: page },
+    }));
+  };
+
+  const resetPagianation = () => {
+    setPagination({
+      repos: { currentPage: 1, totalPages: 1 },
+      followers: { currentPage: 1, totalPages: 1 },
+      following: { currentPage: 1, totalPages: 1 },
+    });
+  };
+
+  const getUserDetails = async (username: string) => {
+    resetPagianation();
+    setStatus((prev) => ({
+      ...prev,
+      loading: { ...prev.loading, user: true },
+      error: { ...prev.error },
+    }));
     try {
-      setIsLoadingUserData(true);
-      const res = await axios.get(
-        `https://api.github.com/users/${username}`,
-        authHedaers
-      );
-      setUserData(res.data);
+      const response = await fetchUserDetails(username);
+      setUserData(response);
     } catch (error) {
       console.log(error);
-      setGetUserError("Error Fetching user details!");
+      setStatus((prev) => ({
+        ...prev,
+        loading: { ...prev.loading },
+        error: { ...prev.error, user: "Error getting user details" },
+      }));
     } finally {
-      setIsLoadingUserData(false);
+      setStatus((prev) => ({
+        ...prev,
+        loading: { ...prev.loading, user: false },
+        error: { ...prev.error },
+      }));
     }
   };
 
-  const fetchRepos = async () => {
+  const getUserRepositories = async (username: string) => {
+    setStatus((prev) => ({
+      ...prev,
+      loading: { ...prev.loading, repos: true },
+      error: { ...prev.error },
+    }));
     try {
-      setIsLoadingRepos(true);
-      const res = await axios.get(
-        `https://api.github.com/users/${username}/repos?sort=pushed&per_page=30&page=${page}`,
-        authHedaers
+      const response = await fetchUserRepos(
+        username,
+        pagination.repos.currentPage
       );
-      setRepos((prev) => [...prev, ...res.data]);
-      const linkHeader = res.headers.link;
+      setRepos(response.data);
+      const linkHeader = response.headers.link;
       if (linkHeader) {
         const totalPagesMatch = linkHeader.match(/&page=(\d+)>; rel="last"/);
         if (totalPagesMatch && totalPagesMatch.length > 1) {
-          setTotalPages(parseInt(totalPagesMatch[1]));
+          setTotalPages("repos", parseInt(totalPagesMatch[1]));
         }
       }
     } catch (error) {
       console.log(error);
-      setGetReposError("Error fetching repositories!");
+      setStatus((prev) => ({
+        ...prev,
+        loading: { ...prev.loading },
+        error: { ...prev.error, repos: "Error getting user repositories!" },
+      }));
     } finally {
-      setIsLoadingRepos(false);
+      setStatus((prev) => ({
+        ...prev,
+        loading: { ...prev.loading, repos: false },
+        error: { ...prev.error },
+      }));
     }
   };
 
-  const fetchFollowers = async () => {
+  const getUserFollowers = async (username: string) => {
+    setStatus((prev) => ({
+      ...prev,
+      loading: { ...prev.loading, followers: true },
+    }));
     try {
-      setIsLoadingFollowers(true);
-      const res = await axios.get(
-        `https://api.github.com/users/${username}/followers?per_page=40&page=${followersPage}`,
-        authHedaers
+      const response = await fetchUserFollowers(
+        username,
+        pagination.followers.currentPage
       );
-      const linkHeader = res?.headers?.link;
+      setFollowers(response.data);
+      const linkHeader = response.headers.link;
       if (linkHeader) {
-        const pagesMatch = linkHeader.match(/&page=(\d+)>; rel="last"/);
-        if (pagesMatch && pagesMatch.length > 1) {
-          setFollowersTotalPages(parseInt(pagesMatch[1]));
+        const totalPagesMatch = linkHeader.match(/&page=(\d+)>; rel="last"/);
+        if (totalPagesMatch) {
+          setTotalPages("followers", parseInt(totalPagesMatch[1], 10));
         }
       }
-      setFollowers(res.data);
     } catch (error) {
       console.log(error);
-      setGetFollowersError("Error fetching followers!");
+      setStatus((prev) => ({
+        ...prev,
+        loading: { ...prev.loading },
+        error: { ...prev.error, followers: "Error getting user followers!" },
+      }));
     } finally {
-      setIsLoadingFollowers(false);
+      setStatus((prev) => ({
+        ...prev,
+        loading: { ...prev.loading, followers: false },
+        error: { ...prev.error },
+      }));
     }
   };
 
-  const fetchFollowing = async () => {
+  const getUserFollowing = async (username: string) => {
+    setStatus((prev) => ({
+      ...prev,
+      loading: { ...prev.loading, following: true },
+      error: { ...prev.error },
+    }));
     try {
-      setIsLoadingFollowing(true);
-      const res = await axios.get(
-        `https://api.github.com/users/${username}/following?per_page=40&page=${followingPage}`,
-        authHedaers
+      const response = await fetchUserFollowing(
+        username,
+        pagination.following.currentPage
       );
-      const linkHeader = res.headers.link;
+      setFollowing(response.data);
+      const linkHeader = response?.headers.link;
       if (linkHeader) {
-        const pagesMatch = linkHeader.match(/&page=(\d+)>; rel="last"/);
-        if (pagesMatch && pagesMatch.length > 1) {
-          setFollowingTotalPages(parseInt(pagesMatch[1]));
+        const totalPagesMatch = linkHeader.match(/&page=(\d+)>; rel="last"/);
+        if (totalPagesMatch) {
+          setTotalPages("following", parseInt(totalPagesMatch[1], 10));
         }
       }
-      setFollowing(res.data);
     } catch (error) {
-      console.log(error);
-      setGetFollowingError("Error fetching user's following!");
+      setStatus((prev) => ({
+        ...prev,
+        loading: { ...prev.loading },
+        error: {
+          ...prev.error,
+          following: "Error getting user-specific following",
+        },
+      }));
     } finally {
-      setIsLoadingFollowing(false);
+      setStatus((prev) => ({
+        ...prev,
+        loading: { ...prev.loading, following: false },
+        error: { ...prev.error },
+      }));
     }
   };
 
-  const loadNextPage = () => {
-    setPage((prev) => prev + 1);
-  };
-  const loadPrevPage = () => {
-    if (page > 1) {
-      setPage((prev) => prev - 1);
-    }
-  };
-
-  const loadFollowersNextPage = () => {
-    if (followersPage < followersTotalPages) {
-      setFollowersPage((prev) => prev + 1);
-    }
-  };
-
-  const loadFollowersPrevPage = () => {
-    if (followersPage > 1) {
-      setFollowersPage((prev) => prev - 1);
-    }
-  };
-
-  const loadFollowingNextPage = () => {
-    setFollowingPage((prev) => prev + 1);
-  };
-  const loadFollowingPrevPage = () => {
-    if (followingPage > 1) {
-      setFollowingPage((prev) => prev - 1);
-    }
-  };
   return (
     <GithubContext.Provider
       value={{
@@ -180,35 +192,13 @@ export const GitProvider = ({ children }: { children: ReactNode }) => {
         repos,
         followers,
         following,
-
-        isLoadingUserData,
-        isLoadingRepos,
-        isLoadingFollowers,
-        isLoadingFollowing,
-
-        getReposError,
-        getFollowersError,
-        getFollowingError,
-        getUserError,
-
-        page,
-        totalPages,
-        followersPage,
-        followersTotalPages,
-        followingPage,
-        followingTotalPages,
-
-        loadNextPage,
-        loadPrevPage,
-        loadFollowersNextPage,
-        loadFollowersPrevPage,
-        loadFollowingNextPage,
-        loadFollowingPrevPage,
-
-        setUserData,
-        setRepos,
-        setFollowers,
-        setFollowing,
+        status,
+        getUserDetails,
+        getUserRepositories,
+        getUserFollowers,
+        getUserFollowing,
+        setPage,
+        pagination,
       }}
     >
       {children}

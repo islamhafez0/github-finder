@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { TUserData } from "../interface";
+import { User } from "../types";
 import LazyLoadImage from "./LazyLoadImage";
 
-const UserCard = ({ user }: { user: TUserData }) => {
+const UserCard = ({ user }: { user: User }) => {
   return (
     <Link to={`/user/${user?.login}/overview`} className="userCard">
       <div>

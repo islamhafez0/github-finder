@@ -1,4 +1,4 @@
-import { TUserData } from "../interface";
+import { User } from "../types";
 import { IoIosLink } from "react-icons/io";
 import { FaXTwitter } from "react-icons/fa6";
 import { Link } from "react-router-dom";
@@ -6,7 +6,7 @@ import { SlUserFollowing } from "react-icons/sl";
 import { FiUsers } from "react-icons/fi";
 import { RiGitRepositoryLine } from "react-icons/ri";
 import { abbreviateNumber } from "../utils";
-const UserLinks = ({ userData }: { userData: TUserData }) => {
+const UserLinks = ({ userData }: { userData: User }) => {
   return (
     <div className="user info">
       {userData?.blog && (

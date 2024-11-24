@@ -4,9 +4,9 @@ import App from "./App.tsx";
 import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <ContextProvider>
+  <ContextProvider>
+    <BrowserRouter>
       <App />
-    </ContextProvider>
-  </BrowserRouter>
+    </BrowserRouter>
+  </ContextProvider>
 );

@@ -1,15 +1,11 @@
 import { ReactNode } from "react";
-import { UsernameProvider } from "./UsernameContext";
-import { PaginationProvider } from "./PaginationContext";
 import { GitProvider } from "./GitContext";
+import { PopularReposContextProvider } from "./PopularReposContext";
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
   return (
-    <UsernameProvider>
-      <PaginationProvider>
-        <GitProvider>{children}</GitProvider>
-      </PaginationProvider>
-      ,
-    </UsernameProvider>
+    <PopularReposContextProvider>
+      <GitProvider>{children}</GitProvider>,
+    </PopularReposContextProvider>
   );
 };

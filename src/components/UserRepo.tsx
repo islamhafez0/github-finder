@@ -1,11 +1,11 @@
 import { CiStar } from "react-icons/ci";
-import { TRepo } from "../interface";
+import { Repo } from "../types";
 import { abbreviateNumber, timeAgo } from "../utils";
 import { GoLaw, GoRepoForked } from "react-icons/go";
 import { GoIssueOpened } from "react-icons/go";
 import { FaRegEye } from "react-icons/fa6";
 import { bgStyles } from "../utils";
-const UserRepo = ({ repo }: { repo: TRepo }) => {
+const UserRepo = ({ repo }: { repo: Repo }) => {
   const styles = bgStyles(repo?.language);
   return (
     <div className="repo">

@@ -1,63 +1,61 @@
+import { useEffect } from "react";
 import { useGit } from "../hooks/useGit";
-import { TUserData } from "../interface";
 import Loader from "./Loader";
 import UserCard from "./UserCard";
+import { useLocation } from "react-router-dom";
 
 const Followers = () => {
   const {
     followers: users,
-    isLoadingFollowers,
-    getFollowersError,
-    followersPage,
-    followersTotalPages,
-    loadFollowersNextPage,
-    loadFollowersPrevPage,
+    getUserFollowers,
+    pagination,
+    status,
+    setPage,
   } = useGit();
-
-  if (getFollowersError) {
-    return <div className="error">{getFollowersError}</div>;
+  const { currentPage, totalPages } = pagination.followers;
+  if (status.error.followers) {
+    return <div className="error">{status.error.followers}</div>;
   }
 
-  if (users.length === 0 && !isLoadingFollowers) {
-    return (
-      <p style={{ textAlign: "center", paddingTop: 35, fontWeight: 500 }}>
-        This user is followed by no one!
-      </p>
-    );
-  }
+  const username = useLocation().pathname.split("/")[2];
+
+  useEffect(() => {
+    (async () => {
+      await getUserFollowers(username);
+    })();
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
   return (
     <div className="tab">
-      {isLoadingFollowers ? (
+      {status.loading.followers ? (
         <Loader />
       ) : (
         <>
           <div className="followers">
-            {users.map((user: TUserData) => (
+            {users.map((user) => (
               <UserCard user={user} key={user?.node_id} />
             ))}
           </div>
-          {!isLoadingFollowers && (
+          {!status.loading.following && users.length === 0 && (
+            <p style={{ textAlign: "center", fontWeight: 500, fontSize: 14 }}>
+              This user is following no one!
+            </p>
+          )}
+          {!status.loading.followers && users.length !== 0 && (
             <div className="pagination">
               <button
-                disabled={followersPage === 1}
-                className={`${followersPage === 1 && "disabled"}`}
-                onClick={loadFollowersPrevPage}
+                disabled={currentPage === 1}
+                className={`${currentPage === 1 && "disabled"}`}
+                onClick={() => setPage("followers", currentPage - 1)}
               >
                 Previous
               </button>
-              {followersPage} of {followersTotalPages}
+              {currentPage} of {totalPages}
               <button
-                disabled={
-                  followersPage === followersTotalPages ||
-                  followersTotalPages === 0
-                }
-                className={`${
-                  (followersPage === followersTotalPages ||
-                    followersTotalPages === 0) &&
-                  "disabled"
-                }`}
-                onClick={loadFollowersNextPage}
+                disabled={currentPage === totalPages}
+                className={`${currentPage === totalPages && "disabled"}`}
+                onClick={() => setPage("followers", currentPage + 1)}
               >
                 Next
               </button>
